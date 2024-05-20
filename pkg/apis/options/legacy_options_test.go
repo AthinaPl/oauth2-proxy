@@ -110,6 +110,11 @@ var _ = Describe("Legacy Options", func() {
 						},
 					},
 				},
+				{
+					Name:                 "X-CSRF-Token",
+					PreserveRequestValue: false,
+					Values:               []HeaderValue{},
+				},
 			}
 
 			opts.InjectResponseHeaders = []Header{}
@@ -503,9 +508,15 @@ var _ = Describe("Legacy Options", func() {
 			},
 		}
 
+		csrfHeader := Header{
+			Name:                 "X-CSRF-Token",
+			PreserveRequestValue: false,
+			Values:               []HeaderValue{},
+		}
+
 		DescribeTable("should convert to injectRequestHeaders",
 			func(in legacyHeadersTableInput) {
-				requestHeaders, responseHeaders := in.legacyHeaders.convert()
+				requestHeaders, responseHeaders := in.legacyHeaders.convert("X-CSRF-Token")
 				Expect(requestHeaders).To(ConsistOf(in.expectedRequestHeaders))
 				Expect(responseHeaders).To(ConsistOf(in.expectedResponseHeaders))
 			},
@@ -524,7 +535,9 @@ var _ = Describe("Legacy Options", func() {
 					BasicAuthPassword:    "",
 					SkipAuthStripHeaders: true,
 				},
-				expectedRequestHeaders:  []Header{},
+				expectedRequestHeaders: []Header{
+					withPreserveRequestValue(csrfHeader, false),
+				},
 				expectedResponseHeaders: []Header{},
 			}),
 			Entry("with basic auth enabled", legacyHeadersTableInput{
@@ -548,6 +561,7 @@ var _ = Describe("Legacy Options", func() {
 					xForwardedGroups,
 					xForwardedPreferredUsername,
 					basicAuthHeader,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					basicAuthHeader,
@@ -599,6 +613,7 @@ var _ = Describe("Legacy Options", func() {
 					xForwardedGroups,
 					xForwardedPreferredUsername,
 					basicAuthHeaderWithEmail,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					basicAuthHeaderWithEmail,
@@ -625,6 +640,7 @@ var _ = Describe("Legacy Options", func() {
 					xForwardedGroups,
 					xForwardedPreferredUsername,
 					basicAuthHeader,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					basicAuthHeader,
@@ -650,6 +666,7 @@ var _ = Describe("Legacy Options", func() {
 					xForwardedEmail,
 					xForwardedGroups,
 					xForwardedPreferredUsername,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{},
 			}),
@@ -691,7 +708,9 @@ var _ = Describe("Legacy Options", func() {
 					BasicAuthPassword:    "",
 					SkipAuthStripHeaders: true,
 				},
-				expectedRequestHeaders: []Header{},
+				expectedRequestHeaders: []Header{
+					withPreserveRequestValue(csrfHeader, false),
+				},
 				expectedResponseHeaders: []Header{
 					xAuthRequestUser,
 					xAuthRequestEmail,
@@ -716,6 +735,7 @@ var _ = Describe("Legacy Options", func() {
 				},
 				expectedRequestHeaders: []Header{
 					xForwardedAccessToken,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{},
 			}),
@@ -736,6 +756,7 @@ var _ = Describe("Legacy Options", func() {
 				},
 				expectedRequestHeaders: []Header{
 					xForwardedAccessToken,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					xAuthRequestUser,
@@ -782,6 +803,7 @@ var _ = Describe("Legacy Options", func() {
 				},
 				expectedRequestHeaders: []Header{
 					authorizationHeader,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					authorizationHeader,
@@ -827,6 +849,7 @@ var _ = Describe("Legacy Options", func() {
 				},
 				expectedRequestHeaders: []Header{
 					xForwardedAccessToken,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					csrfResponseHeader,
@@ -851,6 +874,7 @@ var _ = Describe("Legacy Options", func() {
 				expectedRequestHeaders: []Header{
 					xForwardedAccessToken,
 					authMethodHeader,
+					withPreserveRequestValue(csrfHeader, false),
 				},
 				expectedResponseHeaders: []Header{
 					authMethodHeader,

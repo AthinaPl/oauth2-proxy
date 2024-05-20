@@ -62,6 +62,7 @@ injectRequestHeaders:
 - name: X-Forwarded-Preferred-Username
   values:
   - claim: preferred_username
+- name: X-CSRF-Token
 injectResponseHeaders:
 - name: Authorization
   values:
