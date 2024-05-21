@@ -83,7 +83,11 @@ func (l *LegacyOptions) ToOptions() (*Options, error) {
 	}
 	l.Options.UpstreamServers = upstreams
 
-	l.Options.InjectRequestHeaders, l.Options.InjectResponseHeaders = l.LegacyHeaders.convert(l.Options.CSRFToken.RequestHeader)
+	l.Options.InjectRequestHeaders, l.Options.InjectResponseHeaders = l.LegacyHeaders.convert()
+
+	if l.LegacyHeaders.SkipAuthStripHeaders {
+		l.Options.InjectRequestHeaders = append(l.Options.InjectRequestHeaders, getCSRFHeader(l.Options.CSRFToken.RequestHeader))
+	}
 
 	l.Options.Server, l.Options.MetricsServer = l.LegacyServer.convert()
 
@@ -228,11 +232,11 @@ func legacyHeadersFlagSet() *pflag.FlagSet {
 
 // convert takes the legacy request/response headers and converts them to
 // the new format for InjectRequestHeaders and InjectResponseHeaders
-func (l *LegacyHeaders) convert(csrfHeader string) ([]Header, []Header) {
-	return l.getRequestHeaders(csrfHeader), l.getResponseHeaders()
+func (l *LegacyHeaders) convert() ([]Header, []Header) {
+	return l.getRequestHeaders(), l.getResponseHeaders()
 }
 
-func (l *LegacyHeaders) getRequestHeaders(csrfHeader string) []Header {
+func (l *LegacyHeaders) getRequestHeaders() []Header {
 	requestHeaders := []Header{}
 
 	if l.PassBasicAuth && l.BasicAuthPassword != "" {
@@ -251,10 +255,6 @@ func (l *LegacyHeaders) getRequestHeaders(csrfHeader string) []Header {
 
 	if l.PassAuthorization {
 		requestHeaders = append(requestHeaders, getAuthorizationHeader())
-	}
-
-	if l.SkipAuthStripHeaders {
-		requestHeaders = append(requestHeaders, getCSRFHeader(csrfHeader))
 	}
 
 	for i := range requestHeaders {
@@ -501,8 +501,9 @@ func getAuthMethodHeader(name string) Header {
 
 func getCSRFHeader(name string) Header {
 	return Header{
-		Name:   name,
-		Values: []HeaderValue{},
+		Name:                 name,
+		PreserveRequestValue: false,
+		Values:               []HeaderValue{},
 	}
 }
 
